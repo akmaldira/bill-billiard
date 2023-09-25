@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole @default(CASHIER)
+  order     Order[]
+  createdAt DateTime @default(now()) @map("created_at")
+}
+
+model PoolTable {
+  id        String          @id @default(cuid())
+  name      String
+  price     Int //per hour
+  deviceId  String          @unique @map("device_id")
+  status    PoolTableStatus @default(available)
+  active    Boolean         @default(true)
+  createdAt DateTime        @default(now()) @map("created_at")
+  order     Order[]
+}
+
+model FoodAndBeverage {
+  id         String                  @id @default(cuid())
+  image      String?
+  name       String
+  price      Int
+  stock      Int
+  category   FoodAndBeverageCategory @default(other)
+  active     Boolean                 @default(true)
+  orderItems OrderItems[]
+  createdAt  DateTime                @default(now()) @map("created_at")
+}
+
+model Order {
+  id           String       @id @default(cuid())
+  costumerName String       @map("costumer_name")
+  duration     Int          @default(0)
+  paid         Boolean      @default(false)
+  orderItems   OrderItems[]
+  timeOut      Boolean      @default(false) @map("time_out")
+  note         String?
+  createdById  String       @map("created_by_id")
+  createdBy    User         @relation(fields: [createdById], references: [id])
+  createdAt    DateTime     @default(now()) @map("created_at")
+  pausedAt     DateTime?    @map("paused_at")
+  poolTableId  String       @map("pool_table_id")
+  poolTable    PoolTable    @relation(fields: [poolTableId], references: [id])
+}
+
+model OrderItems {
+  orderId   String          @map("order_id")
+  order     Order           @relation(fields: [orderId], references: [id])
+  itemId    String          @map("item_id")
+  item      FoodAndBeverage @relation(fields: [itemId], references: [id])
+  quantity  Int
+  createdAt DateTime        @default(now()) @map("created_at")
+
+  @@id([orderId, itemId])
+}
+
+enum UserRole {
+  ADMIN
+  CASHIER
+  USER
+}
+
+enum PoolTableStatus {
+  available
+  unavailable
+}
+
+enum FoodAndBeverageCategory {
+  food
+  beverage
+  other
+}
