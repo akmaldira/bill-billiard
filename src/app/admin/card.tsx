@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { endOfMonth, startOfMonth } from "date-fns";
 import { Coins, ListOrdered, Users, UtensilsCrossed } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -62,7 +63,7 @@ export type Summary = {
   totalUnpaidFnb: number;
 };
 
-const getOrders = async (date?: DateRange): Promise<Order[]> => {
+const getOrders = async (date: DateRange): Promise<Order[]> => {
   const res = await fetch(
     `/api/dashboard/order?from=${date?.from}&to=${date?.to}`
   );
@@ -83,6 +84,7 @@ const getSummary = async (): Promise<Summary[]> => {
 };
 
 export default function AdminCard() {
+  const [loading, setLoading] = useState<boolean>(false);
   const [date, setDate] = useState<DateRange | undefined>({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
@@ -99,9 +101,10 @@ export default function AdminCard() {
   const numberOfPaidOrders = paidOrders.length;
   const numberOfUnpaidOrders = unpaidOrders.length;
 
-  const getAllData = async () => {
+  const getAllData = async (date: DateRange | undefined) => {
+    setLoading(true);
     const [orders, users, summary] = await Promise.all([
-      getOrders(),
+      getOrders(date!),
       getUsers(),
       getSummary(),
     ]);
@@ -152,10 +155,11 @@ export default function AdminCard() {
     );
     setUsers(users);
     setTotalSummary(summary);
+    setLoading(false);
   };
 
   useEffect(() => {
-    getAllData();
+    getAllData(date);
   }, [date]);
 
   return (
@@ -176,19 +180,30 @@ export default function AdminCard() {
               <Coins className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {new Intl.NumberFormat("id-ID", {
-                  style: "currency",
-                  currency: "IDR",
-                }).format(totalPaidOrders) || 0}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Belum dibayar{" "}
-                {new Intl.NumberFormat("id-ID", {
-                  style: "currency",
-                  currency: "IDR",
-                }).format(totalUnpaidOrders) || 0}
-              </p>
+              {loading ? (
+                <>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-[250px]" />
+                    <Skeleton className="h-4 w-[200px]" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                    }).format(totalPaidOrders) || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Belum dibayar{" "}
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                    }).format(totalUnpaidOrders) || 0}
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
           <Card>
@@ -199,19 +214,30 @@ export default function AdminCard() {
               <UtensilsCrossed className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {new Intl.NumberFormat("id-ID", {
-                  style: "currency",
-                  currency: "IDR",
-                }).format(totalPaidFnb) || 0}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Belum dibayar{" "}
-                {new Intl.NumberFormat("id-ID", {
-                  style: "currency",
-                  currency: "IDR",
-                }).format(totalUnpaidFnb) || 0}
-              </p>
+              {loading ? (
+                <>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-[250px]" />
+                    <Skeleton className="h-4 w-[200px]" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                    }).format(totalPaidFnb) || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Belum dibayar{" "}
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                    }).format(totalUnpaidFnb) || 0}
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
           <Card>
@@ -222,10 +248,21 @@ export default function AdminCard() {
               <ListOrdered className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{numberOfPaidOrders}</div>
-              <p className="text-xs text-muted-foreground">
-                Belum dibayar {numberOfUnpaidOrders}
-              </p>
+              {loading ? (
+                <>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-[250px]" />
+                    <Skeleton className="h-4 w-[200px]" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{numberOfPaidOrders}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Belum dibayar {numberOfUnpaidOrders}
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
           <Card>
@@ -236,13 +273,25 @@ export default function AdminCard() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{users.length}</div>
-              <p className="text-xs text-muted-foreground">
-                Admin {users.filter((user) => user.role === "ADMIN").length}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Kasir {users.filter((user) => user.role === "CASHIER").length}
-              </p>
+              {loading ? (
+                <>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-[250px]" />
+                    <Skeleton className="h-4 w-[200px]" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{users.length}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Admin {users.filter((user) => user.role === "ADMIN").length}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Kasir{" "}
+                    {users.filter((user) => user.role === "CASHIER").length}
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
