@@ -37,20 +37,23 @@ export const columns: ColumnDef<Order>[] = [
     },
   },
   {
+    accessorKey: "paid",
+    header: "Dibayar",
+    cell: ({ row }) => {
+      const paid = row.getValue("paid") as boolean;
+
+      return <div>{paid ? "Sudah" : "Belum"}</div>;
+    },
+  },
+  {
     accessorKey: "id",
     header: "Total Pembayaran",
     cell: ({ row }) => {
       const order = row.original;
-      const totalOrder =
-        order.poolTable.price * order.duration +
-        order.orderItems.reduce(
-          (acc, curr) => acc + curr.item.price * curr.quantity,
-          0
-        );
       const totalOrderFormatted = new Intl.NumberFormat("id-ID", {
         style: "currency",
         currency: "IDR",
-      }).format(totalOrder);
+      }).format(order.totalPrice);
 
       return <div>{totalOrderFormatted}</div>;
     },

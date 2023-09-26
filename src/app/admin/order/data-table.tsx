@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 
 import { DataTablePagination } from "@/components/DataTablePagination";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -24,6 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useState } from "react";
+import { useExcelDownloder } from "react-xls";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -50,6 +52,7 @@ export function DataTable<TData, TValue>({
       columnFilters,
     },
   });
+  const { ExcelDownloder, Type } = useExcelDownloder();
 
   return (
     <div>
@@ -64,6 +67,26 @@ export function DataTable<TData, TValue>({
           }
           className="max-w-sm"
         />
+        <ExcelDownloder
+          className={buttonVariants()}
+          data={{
+            Order: data
+              .filter((order: any) => order.paid)
+              .map((order: any) => ({
+                "Nama Kostumer": order.costumerName,
+                "Nama Kasir": order.createdBy.name,
+                Durasi: order.duration,
+                Meja: order.poolTable.name,
+                "Waktu Order": order.createdAt,
+                "Total Harga": order.totalPrice,
+                "Catatan Kasir": order.note,
+              })),
+          }}
+          filename={"order"}
+          type={Type.Button}
+        >
+          Download
+        </ExcelDownloder>
       </div>
       <div className="rounded-md border">
         <Table>

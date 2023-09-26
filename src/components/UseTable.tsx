@@ -167,7 +167,6 @@ export default function UseTable({
       });
     }
     afterSubmit();
-    router.refresh();
   };
 
   return (

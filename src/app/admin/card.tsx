@@ -46,6 +46,7 @@ export type Order = {
   createdAt: string | Date;
   createdBy: CreatedBy;
   pausedAt?: Date | string | null;
+  totalPrice: number;
 };
 
 export type User = {

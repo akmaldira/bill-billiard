@@ -19,7 +19,16 @@ async function getData(): Promise<Order[]> {
         createdAt: "desc",
       },
     });
-    return orders;
+
+    return orders.map((order) => ({
+      ...order,
+      totalPrice:
+        order.poolTable.price * order.duration +
+        order.orderItems.reduce(
+          (acc, curr) => acc + curr.item.price * curr.quantity,
+          0
+        ),
+    }));
   } catch (error) {
     console.error(error);
     throw new Error("Failed to fetch orders data");

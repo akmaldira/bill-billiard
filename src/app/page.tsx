@@ -69,7 +69,6 @@ const getPoolTables = async (): Promise<PoolTableData[]> => {
         return table;
       }
     });
-
     return result;
   } catch (error) {
     console.error(error);
