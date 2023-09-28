@@ -1,63 +1,23 @@
-import type { IClientOptions, MqttClient } from "mqtt";
-import MQTT from "mqtt";
-import { useEffect, useRef } from "react";
+import { connect } from "mqtt";
 
-interface useMqttProps {
-  uri: string;
-  options?: IClientOptions;
-  topicHandlers?: { topic: string; handler: (payload: any) => void }[];
-  onConnectedHandler?: (client: MqttClient) => void;
-}
+const client = connect("ws://192.168.1.6:9001");
 
-function useMqtt({
-  uri,
-  options = {},
-  topicHandlers = [{ topic: "", handler: ({ topic, payload, packet }) => {} }],
-  onConnectedHandler = (client) => {},
-}: useMqttProps) {
-  const clientRef = useRef<MqttClient | null>(null);
+const shouldConnect = () => {
+  client.on("connect", () => {
+    console.log("MQTT Connected");
+  });
+  client.on("error", (error) => {
+    console.log("MQTT Error", error);
+    client.reconnect();
+  });
+};
 
-  useEffect(() => {
-    if (clientRef.current) return;
-    if (!topicHandlers || topicHandlers.length === 0) return () => {};
+const turnOff = (deviceId: string) => {
+  client.publish("iot/meja", `meja${deviceId}_off`);
+};
 
-    try {
-      clientRef.current = options
-        ? MQTT.connect(uri, options)
-        : MQTT.connect(uri);
-    } catch (error) {
-      console.error("error", error);
-    }
+const turnOn = (deviceId: string) => {
+  client.publish("iot/meja", `meja${deviceId}_on`);
+};
 
-    const client = clientRef.current;
-    topicHandlers.forEach((th) => {
-      client?.subscribe(th.topic);
-    });
-    client?.on("message", (topic: string, rawPayload: any, packet: any) => {
-      const th = topicHandlers.find((t) => t.topic === topic);
-      let payload;
-      try {
-        payload = JSON.parse(rawPayload);
-      } catch {
-        payload = rawPayload;
-      }
-      if (th) th.handler({ topic, payload, packet });
-    });
-
-    client?.on("connect", () => {
-      if (onConnectedHandler) onConnectedHandler(client);
-    });
-
-    return () => {
-      if (client) {
-        topicHandlers.forEach((th) => {
-          client.unsubscribe(th.topic);
-        });
-        client.end();
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-}
-
-export default useMqtt;
+export { client, shouldConnect, turnOff, turnOn };

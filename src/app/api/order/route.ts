@@ -1,5 +1,6 @@
 import { authOption } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { turnOff, turnOn } from "@/lib/mqtt";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import * as z from "zod";
@@ -194,6 +195,8 @@ export async function POST(req: Request) {
       },
     });
 
+    turnOn(poolTable.deviceId);
+
     return NextResponse.json(
       {
         message: "Order berhasil",
@@ -239,6 +242,8 @@ export async function PUT(req: Request) {
         pausedAt: stopAt ? stopAt : null,
       },
     });
+
+    turnOff(order.poolTable.deviceId);
 
     return NextResponse.json(
       {
@@ -351,6 +356,8 @@ export async function DELETE(req: Request) {
         },
       },
     });
+
+    turnOff(order.poolTable.deviceId);
 
     return NextResponse.json(
       {

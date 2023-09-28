@@ -1,6 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { authOption } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { shouldConnect } from "@/lib/mqtt";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import OrderContentComponents from "../components/Order/page";
@@ -30,6 +31,8 @@ export type PoolTableData = PoolTable & {
   start?: Date;
   end?: Date;
 };
+
+shouldConnect();
 
 const getPoolTables = async (): Promise<PoolTableData[]> => {
   try {
